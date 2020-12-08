@@ -139,7 +139,7 @@ if args.test.test_only:
         each_pred_id = np.argmax(each_predict_prob)
         if each_label in source_classes:
             counters[each_label].Ntotal += 1.0
-            if each_pred_id == each_label: # and np.max(each_predict_prob) >= 0.5
+            if each_pred_id == each_label and np.max(each_predict_prob) >= 0.5: # 
                 counters[each_label].Ncorrect += 1.0
         else:
             counters[-1].Ntotal += 1.0
