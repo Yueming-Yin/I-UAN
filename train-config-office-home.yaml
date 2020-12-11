@@ -29,8 +29,8 @@ test:
   test_only: False # test a given model and exit
 
 misc:
-  gpus: 1  # how many GPUs to be used, 0 indicates CPU only, needed GPU memory < 8G
-  gpu_id: "2"  # which GPU you want to use
+  gpus: 1  # how many GPUs to be used, 0 indicates CPU only, needed GPU memory < 8 GB
+  gpu_id: "1"  # which GPU you want to use
   gpu_id_list: [0] # [0,...,gpus-1]
 
 log:

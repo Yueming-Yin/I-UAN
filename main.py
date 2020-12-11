@@ -47,25 +47,24 @@ model_dict = {
 }
 batch_size = args.data.dataloader.batch_size
 
-def sns_plot(para_source, para_target, source_shared_index, source_private_index, target_shared_index, target_private_index, global_step, name, log=False, save=False):
+def sns_plot(para_source, para_target, source_shared_index, source_private_index, target_shared_index, target_private_index, global_step, name, log=False):
     source_share = torch.index_select(para_source, dim=0, index=source_shared_index).flatten().cpu().detach().numpy()
     source_private = torch.index_select(para_source, dim=0, index=source_private_index).flatten().cpu().detach().numpy()
     target_share = torch.index_select(para_target, dim=0, index=target_shared_index).flatten().cpu().detach().numpy()
     target_private = torch.index_select(para_target, dim=0, index=target_private_index).flatten().cpu().detach().numpy()
     if log:
-        logger.add_scalar('weight/source_shared_weight', source_share.mean(), global_step)
+        logger.add_scalar('weight/source_share_weight', source_share.mean(), global_step)
         logger.add_scalar('weight/source_private_weight', source_private.mean(), global_step)
-        logger.add_scalar('weight/target_shared_weight', target_share.mean(), global_step)
+        logger.add_scalar('weight/target_share_weight', target_share.mean(), global_step)
         logger.add_scalar('weight/target_private_weight', target_private.mean(), global_step)
-    if save:
-        sns.set()
-        sns.kdeplot(source_share, cut=0, label='source shared')
-        sns.kdeplot(source_private, cut=0, label='source private')
-        sns.kdeplot(target_share, cut=0, label='target shared')
-        sns.kdeplot(target_private, cut=0, label='target private')
-        plt.legend()
-        plt.savefig(join(log_dir, name ))
-        plt.close()
+    sns.set()
+    sns.kdeplot(source_share, cut=0, label='source share')
+    sns.kdeplot(source_private, cut=0, label='source private')
+    sns.kdeplot(target_share, cut=0, label='target share')
+    sns.kdeplot(target_private, cut=0, label='target private')
+    plt.legend()
+    plt.savefig(join(log_dir, name ))
+    plt.close()
 
 
 def label_to_RGB(label):
@@ -139,7 +138,7 @@ if args.test.test_only:
         each_pred_id = np.argmax(each_predict_prob)
         if each_label in source_classes:
             counters[each_label].Ntotal += 1.0
-            if each_pred_id == each_label and np.max(each_predict_prob) >= 0.5: # 
+            if each_pred_id == each_label and np.max(each_predict_prob) >= 0.5: #
                 counters[each_label].Ncorrect += 1.0
         else:
             counters[-1].Ntotal += 1.0
@@ -192,7 +191,7 @@ class_temperture = torch.zeros(len(source_classes),1).cuda()
 
 while global_step < args.train.min_step:
 
-    iters = tqdm(zip(source_train_dl, target_train_dl), desc=f'epoch {epoch_id} ', total=len(source_train_dl))
+    iters = tqdm(zip(source_train_dl, target_train_dl), desc=f'epoch {epoch_id} ', total=min(len(source_train_dl), len(target_train_dl)))
     epoch_id += 1
 
     for i, ((im_source, label_source), (im_target, label_target)) in enumerate(iters):
@@ -201,7 +200,7 @@ while global_step < args.train.min_step:
 
         label_source = Variable(label_source.cuda())
         label_target = Variable(label_target.cuda())
-        # label_target = torch.zeros_like(label_target)
+        label_target = torch.zeros_like(label_target)
 
         # =========================forward pass
         im_source = Variable(im_source.cuda())
@@ -232,22 +231,22 @@ while global_step < args.train.min_step:
                 target_margin[target_pseudo_label[index],0] += sorted_pred_target[index,0] - sorted_pred_target[index,1]
                 num_per_class[target_pseudo_label[index],0] +=1
             target_pred_per_label = ((class_temperture * records) + torch.div(target_margin, num_per_class + 1e-6)) / (records + 1)
-            if acc_train > 0.9:
+            if acc_train > 0.6:
                 class_temperture = target_pred_per_label.detach()
                 records += 1
             for index in range(batch_size):
-                source_share_weight[index, 0] = target_pred_per_label[label_source[index]]
+                source_share_weight[index, 0] = target_pred_per_label[label_source[index]] #- domain_prob_source[index]
                 target_share_weight[index, 0] = predict_prob_target.max(1)[0][index]
                 pred_weighted_source[index, 0] = target_pred_per_label[label_source[index]]
 
-        source_shared_label = torch.lt(label_source, args.data.dataset.n_share).view(batch_size,1).float()
-        source_shared_index = torch.nonzero(source_shared_label.flatten()).flatten()
-        source_private_label = torch.ge(label_source,args.data.dataset.n_share).view(batch_size,1).float()
-        source_private_index = torch.nonzero(source_private_label.flatten()).flatten()
-        target_shared_label = torch.lt(label_target,args.data.dataset.n_share).view(batch_size,1).float()
-        target_shared_index = torch.nonzero(target_shared_label.flatten()).flatten()
-        target_private_label = torch.ge(label_target,args.data.dataset.n_share + args.data.dataset.n_source_private).view(batch_size,1).float()
-        target_private_index = torch.nonzero(target_private_label.flatten()).flatten()
+            source_shared_label = torch.lt(label_source, args.data.dataset.n_share).view(batch_size,1).float()
+            source_shared_index = torch.nonzero(source_shared_label.flatten()).flatten()
+            source_private_label = torch.ge(label_source,args.data.dataset.n_share).view(batch_size,1).float()
+            source_private_index = torch.nonzero(source_private_label.flatten()).flatten()
+            target_shared_label = torch.lt(label_target,args.data.dataset.n_share).view(batch_size,1).float()
+            target_shared_index = torch.nonzero(target_shared_label.flatten()).flatten()
+            target_private_label = torch.ge(label_target,args.data.dataset.n_share + args.data.dataset.n_source_private).view(batch_size,1).float()
+            target_private_index = torch.nonzero(target_private_label.flatten()).flatten()
 
         source_share_weight_normalized = normalize_weight(source_share_weight, cut=args.train.cut)
         target_share_weight_normalized = normalize_weight(target_share_weight, cut=args.train.cut)
@@ -261,7 +260,7 @@ while global_step < args.train.min_step:
         tmp = target_share_weight_normalized * nn.BCELoss(reduction='none')(domain_prob_target,torch.zeros_like(domain_prob_target))
         domain_adv_loss += torch.mean(tmp, dim=0, keepdim=True)
 
-        if acc_train > 0.9:
+        if acc_train > 0.6:
             with OptimizerManager(
                     [optimizer_finetune, optimizer_cls, optimizer_domain_discriminator]):
                 loss = cls_s + domain_adv_loss
@@ -310,11 +309,11 @@ while global_step < args.train.min_step:
                 each_pred_id = np.argmax(each_predict_prob)
                 if each_label in source_classes:
                     counters[each_label].Ntotal += 1.0
-                    if each_pred_id == each_label and np.max(each_predict_prob) >= 0.5: # >= 0.5 * global_step / args.train.min_step
+                    if each_pred_id == each_label and np.max(each_predict_prob) >= 0.5:
                         counters[each_label].Ncorrect += 1.0
                 else:
                     counters[-1].Ntotal += 1.0
-                    if np.max(each_predict_prob) < 0.5:  # < 0.5 * global_step / args.train.min_step
+                    if np.max(each_predict_prob) < 0.5:
                         counters[-1].Ncorrect += 1.0
 
             acc_tests = [x.reportAccuracy() for x in counters if not np.isnan(x.reportAccuracy())]
@@ -344,5 +343,5 @@ while global_step < args.train.min_step:
             with open(join(log_dir, 'current.pkl'), 'wb') as f:
                 torch.save(data, f)
 
-            sns_plot(source_share_weight_normalized, target_share_weight_normalized, source_shared_index, source_private_index,
-                     target_shared_index, target_private_index, global_step, name='step{}_w.png'.format(global_step), log=True)
+            # sns_plot(source_share_weight_normalized, target_share_weight_normalized, source_shared_index, source_private_index,
+            #          target_shared_index, target_private_index, global_step, name='step{}_w.png'.format(global_step), log=True)

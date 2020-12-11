@@ -172,22 +172,31 @@ class AdversarialNetwork(nn.Module):
     AdversarialNetwork with a gredient reverse layer.
     its ``forward`` function calls gredient reverse layer first, then applies ``self.main`` module.
     """
-    def __init__(self, in_feature):
+    def __init__(self, in_feature, hidden_layer=True):
         super(AdversarialNetwork, self).__init__()
-        self.main = nn.Sequential(
-            nn.Linear(in_feature, 1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(1024,1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(1024, 1),
-            nn.Sigmoid()
-        )
+        if hidden_layer:
+            self.main = nn.Sequential(
+                nn.Linear(in_feature, 1024),
+                nn.ReLU(inplace=True),
+                nn.Dropout(0.5),
+                nn.Linear(1024,1024),
+                nn.ReLU(inplace=True),
+                nn.Dropout(0.5),
+                nn.Linear(1024, 1),
+                nn.Sigmoid()
+            )
+        else:
+            self.main = nn.Sequential(
+                nn.Linear(in_feature, 1024),
+                nn.ReLU(inplace=True),
+                nn.Linear(1024, 1),
+                nn.Sigmoid()
+            )
         self.grl = GradientReverseModule(lambda step: aToBSheduler(step, 0.0, 1.0, gamma=10, max_iter=10000))
 
-    def forward(self, x):
-        x_ = self.grl(x)
+    def forward(self, x, grl=True):
+        if grl:
+            x_ = self.grl(x)
         y = self.main(x_)
         return y
 
@@ -196,6 +205,31 @@ def normalize_2d(x):
     max_val = x.max()
     x = (x - min_val) / (max_val - min_val)
     return x
+
+class Reconstructor(nn.Module):
+    def __init__(self, in_dim):
+        super(Reconstructor, self).__init__()
+        self.init_size = 224 // 4
+        self.l1 = nn.Sequential(nn.Linear(in_dim, 128 * self.init_size ** 2))
+        self.conv_blocks = nn.Sequential(
+            nn.BatchNorm2d(128),
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(128, 128, 3, stride=1, padding=1),
+            nn.BatchNorm2d(128, 0.8),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(128, 64, 3, stride=1, padding=1),
+            nn.BatchNorm2d(64, 0.8),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(64, 3, 3, stride=1, padding=1),
+            nn.Tanh(),
+        )
+
+    def forward(self, z):
+        out = self.l1(z)
+        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        img = self.conv_blocks(out)
+        return img
 
 
 def save_image_tensor(input_tensor: torch.Tensor, filename):
