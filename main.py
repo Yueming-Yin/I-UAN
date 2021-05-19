@@ -249,7 +249,7 @@ while global_step < args.train.min_step:
             target_private_index = torch.nonzero(target_private_label.flatten()).flatten()
 
         source_share_weight_normalized = normalize_weight(source_share_weight, cut=args.train.cut)
-        target_share_weight_normalized = normalize_weight(target_share_weight, cut=args.train.cut)
+        target_share_weight_normalized = normalize_weight(target_share_weight, cut=0)
 
         # ==============================compute loss
         cls_s = nn.CrossEntropyLoss()(fc2_s, label_source)
