@@ -1,4 +1,4 @@
-# Simple Universal Domain Adaptation
+# Improved Universal Adaptation Networks (I-UAN)
 Code release for Unveiling Class-Labeling Structure for Universal Domain Adaptation (arxiv: 2010.04873)
 ## Requirements
 - python 3.6+
