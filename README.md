@@ -1,5 +1,5 @@
 # Improved Universal Adaptation Network (I-UAN)
-Code release for Unveiling Class-Labeling Structure for Universal Domain Adaptation (arxiv: 2010.04873)
+Code release for **[Pseudo-Margin-Based Universal Domain Adaptation](https://www.sciencedirect.com/science/article/abs/pii/S0950705121005773)**
 ## Requirements
 - python 3.6+
 - PyTorch 1.0
