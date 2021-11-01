@@ -28,7 +28,7 @@ Code release for Unveiling Class-Labeling Structure for Universal Domain Adaptat
 
 ## Ciatation
 # In Latex
-'''
+```
 @article{yin2021pseudo,
   title={Pseudo-margin-based universal domain adaptation},
   author={Yin, Yueming and Yang, Zhen and Wu, Xiaofu and Hu, Haifeng},
@@ -38,8 +38,8 @@ Code release for Unveiling Class-Labeling Structure for Universal Domain Adaptat
   year={2021},
   publisher={Elsevier}
 }
-'''
+```
 # In Word
-'''
+```
 Yin, Yueming, Zhen Yang, Xiaofu Wu, and Haifeng Hu. "Pseudo-margin-based universal domain adaptation." Knowledge-Based Systems 229 (2021): 107315.
-'''
+```
