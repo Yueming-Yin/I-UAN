@@ -26,8 +26,8 @@ Code release for **[Pseudo-Margin-Based Universal Domain Adaptation](https://www
 
   `tensorboard --logdir .`
 
-## Ciatations
-# In Latex
+## Ciatation
+Please cite:
 ```
 @article{yin2021pseudo,
   title={Pseudo-margin-based universal domain adaptation},
@@ -39,7 +39,9 @@ Code release for **[Pseudo-Margin-Based Universal Domain Adaptation](https://www
   publisher={Elsevier}
 }
 ```
-# In Word
+or
 ```
 Yin, Yueming, Zhen Yang, Xiaofu Wu, and Haifeng Hu. "Pseudo-margin-based universal domain adaptation." Knowledge-Based Systems 229 (2021): 107315.
 ```
+## Contact
+- 1018010514@njupt.edu.cn (Yueming Yin)
