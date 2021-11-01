@@ -26,7 +26,7 @@ Code release for Unveiling Class-Labeling Structure for Universal Domain Adaptat
 
   `tensorboard --logdir .`
 
-## Ciatation
+## Ciatations
 # In Latex
 ```
 @article{yin2021pseudo,
