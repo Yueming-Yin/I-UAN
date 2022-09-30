@@ -1,5 +1,8 @@
 # Improved Universal Adaptation Network (I-UAN)
-Code release for **[Pseudo-Margin-Based Universal Domain Adaptation](https://www.sciencedirect.com/science/article/abs/pii/S0950705121005773)**
+Code release for **[Pseudo-Margin-Based Universal Domain Adaptation](https://www.sciencedirect.com/science/article/abs/pii/S0950705121005773)** (Knowledge-Based Systems, 2021, IF: 8.139)
+
+- All rights reserved by Yueming Yin, Email: 1018010514@njupt.edu.cn (or yinym96@qq.com).
+
 ## Requirements
 - python 3.6+
 - PyTorch 1.0
